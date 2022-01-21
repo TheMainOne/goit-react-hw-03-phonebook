@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { nanoid } from "nanoid";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
 import { Header, SecondHeader } from "../Header/Header";
 import Contacts from "../Contacts/Contacts";
 import ContactForm from "../ContactForm/ContactForm";
@@ -8,16 +8,27 @@ import Filter from "../Filter/Filter";
 import { Wrapper } from "./App.styled";
 import { GlobalStyle } from "./App.styled";
 
+const LS_KEY = "contacts";
+
 class App extends Component {
   state = {
-    contacts: [
-      { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-    ],
+    contacts: [],
     filter: "",
   };
+
+  componentDidMount() {
+    const localStorageItems = JSON.parse(localStorage.getItem(LS_KEY));
+
+    if (localStorageItems) {
+      this.setState((prevState) => {
+        const newState = {
+          contacts: [...prevState.contacts, ...localStorageItems.contacts],
+        };
+
+        return newState;
+      });
+    }
+  }
 
   onHandleSubmit = (event) => {
     const form = event.target;
@@ -31,18 +42,21 @@ class App extends Component {
     if (isNameInContacts) {
       const notify = () => toast.error(`${contactName} has been added already`);
 
-      notify()
+      notify();
       form.reset();
       return;
     }
 
     this.setState((prevState) => {
-      return {
+      const newState = {
         contacts: [
           ...prevState.contacts,
           { id: nanoid(), name: contactName, number: contactPhone },
         ],
       };
+
+      localStorage.setItem(LS_KEY, JSON.stringify(newState));
+      return newState;
     });
 
     form.reset();
@@ -57,6 +71,7 @@ class App extends Component {
   getFilteredContacts = () => {
     const { contacts, filter } = this.state;
     const normalizedFilter = filter.toLowerCase();
+
     const filteredContacts = contacts.filter(
       (contact) =>
         contact.name.toLowerCase().includes(normalizedFilter) ||
@@ -71,6 +86,13 @@ class App extends Component {
       const newContacts = prevState.contacts.filter(
         (contact) => contact.id !== id
       );
+
+      if (newContacts.length === 0) {
+        localStorage.removeItem(LS_KEY);
+        return {contacts: []};
+      }
+
+      localStorage.setItem(LS_KEY, JSON.stringify(newContacts));
       return {
         contacts: [...newContacts],
       };
@@ -98,7 +120,7 @@ class App extends Component {
           deleteContact={this.deleteContact}
         />
         <GlobalStyle />
-              <Toaster />
+        <Toaster />
       </Wrapper>
     );
   }
