@@ -31,13 +31,13 @@ class App extends Component {
   }
 
   onHandleSubmit = (event) => {
+    event.preventDefault();
     const form = event.target;
     const contactName = event.target.elements.name.value;
     const contactPhone = event.target.elements.number.value;
     const isNameInContacts = this.state.contacts.find(
       (element) => element.name === contactName
     );
-    event.preventDefault();
 
     if (isNameInContacts) {
       const notify = () => toast.error(`${contactName} has been added already`);
@@ -89,7 +89,7 @@ class App extends Component {
 
       if (newContacts.length === 0) {
         localStorage.removeItem(LS_KEY);
-        return {contacts: []};
+        return { contacts: [] };
       }
 
       localStorage.setItem(LS_KEY, JSON.stringify(newContacts));
